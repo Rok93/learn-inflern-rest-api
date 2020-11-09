@@ -1,6 +1,7 @@
 package com.example.learninflernrestapi.events;
 
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,10 +20,12 @@ public class EventController {
 
     private final EventRepository eventRepository;
 
-    @PostMapping
-    public ResponseEntity createEvent(@RequestBody Event event) { // create()를 보낼 때는, 항상 uri가 필요하다.
-        Event newEvent = eventRepository.save(event);
+    private final ModelMapper modelMapper;
 
+    @PostMapping
+    public ResponseEntity createEvent(@RequestBody EventDto eventDto) { // create()를 보낼 때는, 항상 uri가 필요하다.
+        Event event = modelMapper.map(eventDto, Event.class);
+        Event newEvent = eventRepository.save(event);
         URI createdUri = linkTo(EventController.class).slash(newEvent.getId()).toUri();//uri를 만들 때는 HATEOS(=헤이티오스)에서 제공하는 linkTo(), methodOn() 메소드 사용 하면 편리하게 만들 수 있다.
         return ResponseEntity.created(createdUri).body(event);
     }
