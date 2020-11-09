@@ -46,8 +46,7 @@ class EventControllerTest {
     @Test
     void creteEvent() throws Exception {
         //given
-        Event event = Event.builder()
-                .id(100)
+        EventDto event = EventDto.builder()
                 .name("Spring")
                 .description("REST API Development with Spring")
                 .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 14, 21))
@@ -58,11 +57,7 @@ class EventControllerTest {
                 .maxPrice(200)
                 .limitOfEnrollment(100)
                 .location("강남역 D2 스타트업 팩토리")
-                .free(true)
-                .offline(false)
-                .eventStatus(EventStatus.PUBLISHED)
                 .build();
-//        event.setId(1);
 
         String url = "/api/events/";
 
@@ -79,6 +74,39 @@ class EventControllerTest {
                 .andExpect(jsonPath("id").value(Matchers.not(100)))
                 .andExpect(jsonPath("free").value(Matchers.not(true)))
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
+    }
+
+    @DisplayName("잘못된 입력을 주었을 경우, createEvent 테스트 ")
+    @Test
+    void creteEvent_Bad_Request() throws Exception {
+        //given
+        Event event = Event.builder()
+                .id(100)
+                .name("Spring")
+                .description("REST API Development with Spring")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 14, 21))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 24, 14, 21))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 25, 14, 21))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 26, 14, 21))
+                .basePrice(100)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .location("강남역 D2 스타트업 팩토리")
+                .free(true)
+                .offline(false)
+                .eventStatus(EventStatus.PUBLISHED)
+                .build();
+
+        String url = "/api/events/";
+
+        //when //then
+        mockMvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON)
+                .content(objectMapper.writeValueAsString(event)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
     }
 }
 
