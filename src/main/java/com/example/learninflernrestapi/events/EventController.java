@@ -25,7 +25,7 @@ public class EventController {
     private final EventValidator eventValidator;
 
     @PostMapping
-    public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors, EventValidator eventValidator) { // create()를 보낼 때는, 항상 uri가 필요하다.
+    public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) { // create()를 보낼 때는, 항상 uri가 필요하다.
         if (errors.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
