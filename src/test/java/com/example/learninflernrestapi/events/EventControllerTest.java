@@ -43,7 +43,7 @@ class EventControllerTest {
                 .build();
     }
 
-    @DisplayName("createEvent 기능을 테스트 ")
+    @DisplayName("정상적으로 이벤트를 생성하는 테스트 ")
     @Test
     void creteEvent() throws Exception {
         //given
@@ -77,7 +77,7 @@ class EventControllerTest {
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
     }
 
-    @DisplayName("잘못된 입력을 주었을 경우, createEvent 기능 테스트 ")
+    @DisplayName("입력 받을 수 없는 값을 사용할 경우에 에러가 발생하는 테스트 ")
     @Test
     void creteEvent_Bad_Request() throws Exception {
         //given
@@ -110,7 +110,7 @@ class EventControllerTest {
         ;
     }
 
-    @DisplayName("비어있는 입력이 주어졌을 경우, createEvent 기능 테스트 ")
+    @DisplayName("입력 값이 비어있는 경우에 에러가 발생하는 테스트 ")
     @Test
     void createEvent_Bad_Request_Empty_Input() throws Exception {
         //given
@@ -123,7 +123,7 @@ class EventControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @DisplayName("잘못된 데이터 정보를 입력받았을 때, createEvent 기능 테스트 ")
+    @DisplayName("입력 값이 잘못된 경우에 에러가 발생한 테스트 ")
     @Test
     void create_Bad_Request_Wrong_Input() throws Exception {
         //given
