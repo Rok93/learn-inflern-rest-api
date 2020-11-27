@@ -1,5 +1,6 @@
 package com.example.learninflernrestapi.events;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,7 @@ class EventControllerTest {
                 .build();
     }
 
-    @DisplayName("createEvent 테스트 ")
+    @DisplayName("createEvent 기능을 테스트 ")
     @Test
     void creteEvent() throws Exception {
         //given
@@ -76,7 +77,7 @@ class EventControllerTest {
                 .andExpect(jsonPath("eventStatus").value(EventStatus.DRAFT.name()));
     }
 
-    @DisplayName("잘못된 입력을 주었을 경우, createEvent 테스트 ")
+    @DisplayName("잘못된 입력을 주었을 경우, createEvent 기능 테스트 ")
     @Test
     void creteEvent_Bad_Request() throws Exception {
         //given
@@ -107,6 +108,43 @@ class EventControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
+    }
+
+    @DisplayName("비어있는 입력이 주어졌을 경우, createEvent 기능 테스트 ")
+    @Test
+    void createEvent_Bad_Request_Empty_Input() throws Exception {
+        //given
+        EventDto eventDto = EventDto.builder().build();
+
+        //when //then
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(eventDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("잘못된 데이터 정보를 입력받았을 때, createEvent 기능 테스트 ")
+    @Test
+    void create_Bad_Request_Wrong_Input() throws Exception {
+        //given
+        EventDto eventDto = EventDto.builder()
+                .name("Spring")
+                .description("REST API Development with Spring")
+                .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 26, 14, 21))
+                .closeEnrollmentDateTime(LocalDateTime.of(2018, 11, 25, 14, 21))
+                .beginEventDateTime(LocalDateTime.of(2018, 11, 24, 14, 21))
+                .endEventDateTime(LocalDateTime.of(2018, 11, 23, 14, 21))
+                .basePrice(10000)
+                .maxPrice(200)
+                .limitOfEnrollment(100)
+                .location("강남역 D2 스타트업 팩토리")
+                .build();
+
+        //when //then
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(eventDto)))
+                .andExpect(status().isBadRequest());
     }
 }
 

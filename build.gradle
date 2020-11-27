@@ -28,6 +28,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compile group: 'org.modelmapper', name: 'modelmapper', version: '2.3.8'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '2.3.5.RELEASE'
+
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -41,11 +43,5 @@ dependencies {
 }
 
 test {
-    outputs.dir snippetsDir
     useJUnitPlatform()
-}
-
-asciidoctor {
-    inputs.dir snippetsDir
-    dependsOn test
 }
