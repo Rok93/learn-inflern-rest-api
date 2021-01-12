@@ -22,6 +22,5 @@ public class EventValidator {
 
         // todo: beginEventDateTime
         // todo: CloseEnrollmentDateTime
-
     }
 }
