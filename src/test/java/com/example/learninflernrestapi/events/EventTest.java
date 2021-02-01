@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class EventTest {
+class EventTest { // 사실 이 테스트는 롬복의 학습용 테스트이지, 굳이 필요한 테스트가 아니다!!
 
     @DisplayName("빌더 테스트 ")
     @Test
