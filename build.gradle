@@ -46,7 +46,7 @@ dependencies {
 
     testImplementation 'org.springframework.security:spring-security-test:4.2.20.RELEASE'
     compile group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: '2.1.0.RELEASE'
-
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }
 
 test {

@@ -3,6 +3,7 @@ package com.example.learninflernrestapi.configs;
 import com.example.learninflernrestapi.accounts.Account;
 import com.example.learninflernrestapi.accounts.AccountRole;
 import com.example.learninflernrestapi.accounts.AccountService;
+import com.example.learninflernrestapi.common.AppProperties;
 import com.example.learninflernrestapi.common.BaseControllerTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,27 +22,17 @@ class AuthServerConfigTest extends BaseControllerTest { // 일종의 ControllerT
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    AppProperties appProperties;
+
     @DisplayName("인증 토큰을 발급 받는 테스트")
     @Test
     void getAuthToken() throws Exception {
-        //given
-        String username = "keesun@email.com";
-        String password = "keesun";
-        Account keesun = Account.builder()
-                .email(username)
-                .password(password)
-                .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
-                .build();
-        this.accountService.saveAccount(keesun);
-
-        String clientId = "myApp";
-        String clientSecret = "pass";
-
-        //when //then
+        //given //when //then
         this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clientId, clientSecret))
-                .param("username", username)
-                .param("password", password)
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", appProperties.getUserUsername())
+                .param("password", appProperties.getUserPassword())
                 .param("grant_type", "password")
         )
                 .andDo(print())

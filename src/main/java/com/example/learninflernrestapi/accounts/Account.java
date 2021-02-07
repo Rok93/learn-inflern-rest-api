@@ -18,6 +18,7 @@ public class Account { //Account를 Event에서 단방향으로 참조할 수 �
     @GeneratedValue
     private Integer id;
 
+    @Column(unique = true)
     private String email;
 
     private String password;

@@ -3,6 +3,7 @@ package com.example.learninflernrestapi.configs;
 import com.example.learninflernrestapi.accounts.Account;
 import com.example.learninflernrestapi.accounts.AccountRole;
 import com.example.learninflernrestapi.accounts.AccountService;
+import com.example.learninflernrestapi.common.AppProperties;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -27,21 +28,31 @@ public class AppConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-//    @Bean   (질문부분 보니까 중복되기 때문에 이 부분은 제거하는게 맞다고 함!)
-//    public ApplicationRunner applicationRunner() {
-//        return new ApplicationRunner() {
-//            @Autowired
-//            AccountService accountService;
-//
-//            @Override
-//            public void run(ApplicationArguments args) throws Exception {
-//                Account keesun = Account.builder()
-//                        .email("keesun@email.com")
-//                        .password("keesun")
-//                        .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
-//                        .build();
-//                accountService.saveAccount(keesun);
-//            }
-//        };
-//    }
+    @Bean   //(질문부분 보니까 중복되기 때문에 이 부분은 제거하는게 맞다고 함!)
+    public ApplicationRunner applicationRunner() {
+        return new ApplicationRunner() {
+            @Autowired
+            AccountService accountService;
+
+            @Autowired
+            AppProperties appProperties;
+
+            @Override
+            public void run(ApplicationArguments args) throws Exception {
+                Account admin = Account.builder()
+                        .email(appProperties.getAdminUsername())
+                        .password(appProperties.getAdminPassword())
+                        .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
+                        .build();
+                accountService.saveAccount(admin);
+
+                Account user = Account.builder()
+                        .email(appProperties.getUserUsername())
+                        .password(appProperties.getUserPassword())
+                        .roles(Set.of(AccountRole.USER))
+                        .build();
+                accountService.saveAccount(user);
+            }
+        };
+    }
 }
