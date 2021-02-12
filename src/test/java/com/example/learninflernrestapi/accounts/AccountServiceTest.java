@@ -29,6 +29,7 @@ class AccountServiceTest {
         //given
         String password = "keesun";
         String username = "keesun@email.com";
+
         Account account = Account.builder()
                 .email(username)
                 .password(password)

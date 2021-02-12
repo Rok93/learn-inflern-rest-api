@@ -1,5 +1,8 @@
 package com.example.learninflernrestapi.events;
 
+import com.example.learninflernrestapi.accounts.Account;
+import com.example.learninflernrestapi.accounts.AccountAdapter;
+import com.example.learninflernrestapi.accounts.CurrentUser;
 import com.example.learninflernrestapi.common.ErrorsResource;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -11,6 +14,8 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -65,13 +70,34 @@ public class EventController {
         return ResponseEntity.created(createdUri).body(eventResource);
     }
 
+    //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //        User principal = (User) authentication.getPrincipal();  이 두 주석을 애너테이션으로 바로 처리할 수 있다!!
+//    @GetMapping
+//    public ResponseEntity queryEvents(Pageable pageable,
+//                                      PagedResourcesAssembler<Event> assembler,
+//                                      @CurrentUser Account account) {
+//        Page<Event> page = this.eventRepository.findAll(pageable);
+//        PagedModel<EventResource> pagedResources = assembler.toModel(page, EventResource::new);
+//        pagedResources.add(Link.of("/docs/index.html#resources-events-list").withRel("profile"));
+//        if (account != null) {
+//            pagedResources.add(linkTo(EventController.class).withRel("create-event"));
+//        }
+//        return ResponseEntity.ok().body(pagedResources);
+//    }
+
     @GetMapping
-    public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler) {
+    public ResponseEntity queryEvents(Pageable pageable,
+                                      PagedResourcesAssembler<Event> assembler,
+                                      @AuthenticationPrincipal User user) {
         Page<Event> page = this.eventRepository.findAll(pageable);
         PagedModel<EventResource> pagedResources = assembler.toModel(page, EventResource::new);
         pagedResources.add(Link.of("/docs/index.html#resources-events-list").withRel("profile"));
+        if (user != null) {
+            pagedResources.add(linkTo(EventController.class).withRel("create-event"));
+        }
         return ResponseEntity.ok().body(pagedResources);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity getEvent(@PathVariable Integer id) {

@@ -24,6 +24,7 @@ public class AccountService implements UserDetailsService {
     PasswordEncoder passwordEncoder;
 
     public Account saveAccount(Account account) {
+        // todo: https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released 마이그레이션 지침 문서 따라서...변경 해봤음 {noop}
         account.setPassword(this.passwordEncoder.encode(account.getPassword()));
         return this.accountRepository.save(account);
     }
@@ -32,12 +33,6 @@ public class AccountService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = accountRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username));
-        return new User(account.getEmail(), account.getPassword(), authorities(account.getRoles()));
-    }
-
-    private Collection<? extends GrantedAuthority> authorities(Set<AccountRole> roles) {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
-                .collect(Collectors.toSet());
+        return new AccountAdapter(account);
     }
 }

@@ -159,7 +159,7 @@ class EventControllerTest extends BaseControllerTest {
                 .param("password", appProperties.getUserPassword())
                 .param("grant_type", "password"));
 
-        String responseBody = perform.andReturn().getResponse().getContentAsString();
+        var responseBody = perform.andReturn().getResponse().getContentAsString();
         Jackson2JsonParser parser = new Jackson2JsonParser();
         return parser.parseMap(responseBody).get("access_token").toString();
     }
@@ -264,6 +264,31 @@ class EventControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("_links.profile").exists())
                 .andDo(document("query-events"))
         //todo: 개인과제: 페이지에 대한 정보들... number가 0부터 시작한다거나, first는 첫 번째 페이지, prev 이전 페이지, next는 다음 페이지이다! (이전내용 참고해서 작성!)
+        ;
+    }
+
+    @DisplayName("30개의 이벤트를 10개씩 두번째 페이지 조회하기")
+    @Test
+    void queryEventsWithAuthentication() throws Exception {
+        //given
+        IntStream.range(0, 30)
+                .forEach(this::generateEvent);
+
+        //when //then
+        this.mockMvc.perform(get("/api/events")
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                .param("page", "1")
+                .param("size", "10")
+                .param("sort", "name,DESC")
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("page").exists())
+                .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
+                .andExpect(jsonPath("_links.self").exists())
+                .andExpect(jsonPath("_links.profile").exists())
+                .andExpect(jsonPath("_links.create-event").exists())
+                .andDo(document("query-events"))
         ;
     }
 
