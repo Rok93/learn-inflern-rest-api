@@ -13,6 +13,7 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
@@ -36,7 +37,9 @@ public class EventController {
     private final EventValidator eventValidator;
 
     @PostMapping
-    public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) { // create()를 보낼 때는, 항상 uri가 필요하다.
+    public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto,
+                                      Errors errors,
+                                      @CurrentUser Account currentUser) { // create()를 보낼 때는, 항상 uri가 필요하다.
         if (errors.hasErrors()) {
             return badRequest(errors);
         }
@@ -49,6 +52,7 @@ public class EventController {
         Event newEvent = eventRepository.save(modelMapper.map(eventDto, Event.class));
         Integer eventId = newEvent.getId();
         newEvent.update();
+        newEvent.setManager(currentUser);
 
         WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(eventId);
         URI createdUri = selfLinkBuilder.toUri();//uri를 만들 때는 HATEOS(=헤이티오스)에서 제공하는 linkTo(), methodOn() 메소드 사용 하면 편리하게 만들 수 있다.
@@ -100,7 +104,7 @@ public class EventController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity getEvent(@PathVariable Integer id) {
+    public ResponseEntity getEvent(@PathVariable Integer id, @CurrentUser Account currentUser) {
         Optional<Event> optionalEvent = this.eventRepository.findById(id);
         if (optionalEvent.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -109,6 +113,11 @@ public class EventController {
         Event event = optionalEvent.get();
         EventResource eventResource = new EventResource(event);
         eventResource.add(Link.of("/docs/index.html#resources-events-get").withRel("profile"));
+
+        if (event.getManager().equals(currentUser)) {
+            eventResource.add(linkTo(EventController.class).slash(event.getId()).withRel("update-event"));
+        }
+
         return ResponseEntity.ok(eventResource);
     }
 
@@ -119,7 +128,8 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity updateEvent(@PathVariable Integer id,
                                       @RequestBody @Valid EventDto eventDto,
-                                      Errors errors) {
+                                      Errors errors,
+                                      @CurrentUser Account currentUser) {
         Optional<Event> optionalEvent = this.eventRepository.findById(id);
         if (optionalEvent.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -135,6 +145,10 @@ public class EventController {
         }
 
         Event existingEvent = optionalEvent.get();
+        if (!existingEvent.getManager().equals(currentUser)) {
+            return new ResponseEntity(HttpStatus.UNAUTHORIZED);
+        }
+
         this.modelMapper.map(eventDto, existingEvent); // 원천소스(~에서)가 먼저 나오고 타겟 (~로)
         Event savedEvent = eventRepository.save(existingEvent);
         // 기존 이벤트에다가 eventDto의 데이터를 덮어 씌어주는 것이다.

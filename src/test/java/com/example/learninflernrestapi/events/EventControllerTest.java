@@ -47,8 +47,8 @@ class EventControllerTest extends BaseControllerTest {
 
     @BeforeEach
     void setUp() {
-        this.accountRepository.deleteAll();
         this.eventRepository.deleteAll();
+        this.accountRepository.deleteAll();
     }
 
     @DisplayName("정상적으로 이벤트를 생성하는 테스트 ")
@@ -139,18 +139,19 @@ class EventControllerTest extends BaseControllerTest {
         ;
     }
 
-    private String getBearerToken() throws Exception {
-        return "Bearer " + getAccessToken();
+    private String getBearerToken(boolean needToCreateAccount) throws Exception {
+        return "Bearer " + getAccessToken(needToCreateAccount);
     }
 
-    private String getAccessToken() throws Exception {
+    private String getBearerToken() throws Exception {
+        return "Bearer " + getAccessToken(true);
+    }
+
+    private String getAccessToken(boolean needToCreateAccount) throws Exception {
 //        //given
-        Account keesun = Account.builder()
-                .email(appProperties.getUserUsername())
-                .password(appProperties.getUserPassword())
-                .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
-                .build();
-        this.accountService.saveAccount(keesun);
+        if (needToCreateAccount) {
+            createAccount();
+        }
 
         //when //then
         ResultActions perform = this.mockMvc.perform(post("/oauth/token")
@@ -162,6 +163,15 @@ class EventControllerTest extends BaseControllerTest {
         var responseBody = perform.andReturn().getResponse().getContentAsString();
         Jackson2JsonParser parser = new Jackson2JsonParser();
         return parser.parseMap(responseBody).get("access_token").toString();
+    }
+
+    private Account createAccount() {
+        Account keesun = Account.builder()
+                .email(appProperties.getUserUsername())
+                .password(appProperties.getUserPassword())
+                .roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
+                .build();
+        return this.accountService.saveAccount(keesun);
     }
 
     @DisplayName("입력 받을 수 없는 값을 사용할 경우에 에러가 발생하는 테스트 ")
@@ -296,7 +306,8 @@ class EventControllerTest extends BaseControllerTest {
     @Test
     void getEvent() throws Exception {
         //given
-        Event event = this.generateEvent(100);
+        Account account = createAccount();
+        Event event = this.generateEvent(100, account);
 
         //when //then
         this.mockMvc.perform(get("/api/events/{id}", event.getId())) // pathVariable로 id 값을 넣겠다는 의미
@@ -309,8 +320,19 @@ class EventControllerTest extends BaseControllerTest {
         ;
     }
 
+    private Event generateEvent(int index, Account account) {
+        Event event = buildEvent();
+        event.setManager(account);
+        return this.eventRepository.save(event);
+    }
+
     private Event generateEvent(int index) {
-        Event event = Event.builder()
+        Event event = buildEvent();
+        return this.eventRepository.save(event);
+    }
+
+    private Event buildEvent() {
+        return Event.builder()
                 .name("Spring")
                 .description("REST API Development with Spring")
                 .beginEnrollmentDateTime(LocalDateTime.of(2018, 11, 23, 14, 21))
@@ -325,8 +347,6 @@ class EventControllerTest extends BaseControllerTest {
                 .offline(true)
                 .eventStatus(EventStatus.DRAFT)
                 .build();
-
-        return this.eventRepository.save(event);
     }
 
     @DisplayName("없는 이벤트를 조회했을 때 404 응답받기")
@@ -342,7 +362,8 @@ class EventControllerTest extends BaseControllerTest {
     @Test
     void updateEvent() throws Exception {
         //given
-        Event event = this.generateEvent(200);
+        Account account = createAccount();
+        Event event = this.generateEvent(200, account);
 
         EventDto eventDto = this.modelMapper.map(event, EventDto.class);
         String eventName = "Updated Event";
@@ -350,7 +371,7 @@ class EventControllerTest extends BaseControllerTest {
 
         //when //then
         this.mockMvc.perform(put("/api/events/{id}", event.getId())
-                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken(false))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(this.objectMapper.writeValueAsString(eventDto))
         )

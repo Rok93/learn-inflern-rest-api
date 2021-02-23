@@ -1,6 +1,8 @@
 package com.example.learninflernrestapi.events;
 
 import com.example.learninflernrestapi.accounts.Account;
+import com.example.learninflernrestapi.accounts.AccountSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 
 import javax.persistence.*;
@@ -34,8 +36,9 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus eventStatus = EventStatus.DRAFT;
 
+    @JsonSerialize(using = AccountSerializer.class)
     @ManyToOne
-    private Account manager;
+    private Account manager; // manager의 구체적인 정보(email, pw)를 알 필요가 없기에 이 Serializer 를 쓰도록 등록해준다!
 
     public void update() {
         if (this.basePrice == 0 && this.maxPrice == 0) {
